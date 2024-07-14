@@ -5,10 +5,14 @@
 ; modified by Ken Willmott from Mini11 Bootstrap by Alan Cox
 ;
 ; 2024-06-29 change baud rate for 7.3278 Mhz crystal
+; 2024-07-10 Add full system initialization
+; 2024-07-12 make serial routines stand alone in ROM
 
 ROM	EQU	$F800
 MEMLAT	EQU	ROM	; shared, read ROM and write latch
-
+CPUBAS	EQU	$F000
+SYSVAR	EQU	CPUBAS-$80
+STKBAS	EQU	SYSVAR-1
 
 ; existing defines
 
@@ -34,26 +38,34 @@ CTSD1	EQU	4
 
 ; new definitions
 
+INIT	equ	$3D           ; RAM and IO mapping reg
 OPTION	EQU	$39
+CONFIG	equ	$3F           ; config register
 
-	ORG	$F040
-	;	IRAM
-CARDTYPE:
-	RMB	1
 
-BUF:
-	RMB	8
+NUMVEC	equ	20	; number of CPU vectors to create
+NUMREG	equ	11	; number of CPU registers
+
+; Register flag definitions:
+
+TDRE	equ	$80
+RDRF	equ	$20
 
 	ORG ROM
 
 START:
 	;	Put the internal RAM at F040-F0FF
-	;	and I/O at F000-F03F. This costs s 64bits of IRAM
-	;	but gives us a nicer addressing map.
+	;	and I/O at F000-F03F. This costs us 64bits of IRAM
+	;	but gives us a nicer contiguous addressing map.
 	LDAA	#$FF
-	STAA  	$103D
+	STAA  	$1000+INIT
 
-	LDX	#$F000
+	;	X = base of CPU registers
+	LDX	#CPUBAS
+
+	LDAA	#$13
+	STAA	OPTION,X	;COP slow, clock startup DLY still on
+
 	;	Free running timer on divide by 16
 	LDAA	TMSK2,X
 	ORAA    #3
@@ -70,31 +82,42 @@ START:
 	STAA	PORTA,X
 	BSET	PACTL,X $80
 
-	LDAA	#$13
-	STAA	OPTION,X	;COP slow, DLY still on
-
-	SEI
+	;	configure serial
+	;	Serial is 115200 8N1 for the 7.3728MHz crystal
 	LDAA	#$00
 	STAA	BAUD,X	; BAUD
 	LDAA	#$00
 	STAA	SCCR1,X	; SCCR1
 	LDAA	#$0C
 	STAA	SCCR2,X	; SCCR2
-	;	Serial is now 115200 8N1 for the 7.3728MHz crystal
-	LDS	#$F0FF
 
+	; set up default vector jump table
+	lds	#SYSVAR-1   ;SET STACK POINTER
+	ldab	#NUMVEC
+	ldaa	#$7E		;JMP INSTRUCTION
+	ldy	#VECERR
+NEXTVC:	pshy
+	psha
+	decb
+	bne	NEXTVC
 
-	LDY	#INIT
+   	;SET STACK POINTER
+   	lds	#STKBAS-1
+
+; start up messages
+
+	LDY	#INIT1
 	JSR	STROUT
 
-	LDAA	$3F,X	; CONFIG
-	JSR	PHEX	; Display it
+	LDAA	CONFIG,X
+	JSR	PHEX	; Display CPU config
 
 	LDY	#INIT2
 	JSR	STROUT
-	;
-	;	Probe for an SD card and set it up as tightly as we can
-	;
+
+;
+;	Probe for an SD card and set it up as tightly as we can
+;
 
 	LDAA #$38	; SPI outputs on
 	STAA DDRD,X
@@ -240,11 +263,18 @@ DATALOOP:
 	INY
 	DECA
 	BNE DATALOOP
+
+;	Done transfer disk to page zero
+	LDY	#INIT3
+	JSR	STROUT
+
 	BSR CSRAISE
 	LDY #$0
 	LDD ,Y
 	CPD #$6811
 	BNE NOBOOT
+
+;	Jump to loader that we installed
 	LDAA CARDTYPE
 	JMP 2,Y
 
@@ -256,23 +286,9 @@ CSRAISE:
 SENDFF:
 	LDAB #$FF
 SEND:
-;	PSHA
-;	TBA
-;	JSR PHEX
-;	LDA #':'
-;	JSR CHOUT
-;	PULA
 	STAB SPDR,X
 SENDW:	BRCLR SPSR,X $80 SENDW
 	LDAB SPDR,X
-;	PSHA
-;	TBA
-;	JSR PHEX
-;	LDAA #10
-;	JSR CHOUT
-;	LDAA #13
-;	JSR CHOUT
-;	PULA
 	RTS
 
 ;
@@ -297,37 +313,47 @@ ACMD41_0:
 ACMD41:
 	FCB $69,$40,0,0,0,$01
 
-NOBOOT: LDY	#NOBOOT
-	FCC	'Not bootable'
-	FCB	13,10,0
+NOBOOT: LDY	#NOBMSG
 FAULT:	JSR	STROUT
 STOPB:	BRA	STOPB
 
-INIT:
-	FCC	'Mini11/M8 System Boot (C) 2024 Ken Willmott'
-	FCB	13,10
-	FCC	'derived from'
-	FCB	13,10
+INIT1:
+	FCC	'*** Mini11/M8 System Boot (C) 2024 Ken Willmott ***'
+	FCB	$0D,$0A
+	FCC	'based on '
 	FCC	'Mini11 68HC11 System, (C) 2019-2023 Alan Cox'
-	FCB	13,10
-	FCC	'Firmware revision: 1.0'
-	FCB	13,10
-	FCC	'MC68HC11 config register: '
+	FCB	$0D,$0A
+	FCC	'SD Boot Loader Version 1.1 built on '
+	FCC	DATE
+	FCB	$0D,$0A
+	FCC	'CPU config register: '
 	FCB	0
 
 INIT2:
-	FCB	13,10
-	FCC	'Booting from SD card...'
+	FCB	$0D,$0A
+	FCC	'Attempting to boot from SD: '
+	FCB	0
+
+INIT3:
+	FCC	'SD boot successful.'
 	FCB	13,10,0
 
 ERROR:
-	FCC	'SD Error'
+	FCC	'Error - SD not functional'
 	FCB	13,10,0
 
+NOBMSG: FCC	'Invalid boot signature'
+	FCB	13,10,0
+
+ERROUT:	.fcb $0D,$0A
+	.fcc "Error - CPU vector table entry not initialized"
+	.fcb $0D,$0A,0
+
 	;
-	;	Serial I/O	
+	;	Serial I/O
 	;
 
+; print a hex digit in A
 PHEX:	PSHA
 	LSRA
 	LSRA
@@ -340,17 +366,113 @@ HEXDIGIT:
 	CMPA #10
 	BMI LO
 	ADDA #7
+
+; print value in A as a numeral
 LO:	ADDA #'0'
-CHOUT:	BRCLR	SCSR,X $80 CHOUT
+
+CHOUT:	PSHX
+	LDX	#CPUBAS
+CHOUTL:	BRCLR	SCSR,X TDRE CHOUTL
 	STAA	SCDR,X
-CHOUTE:	BRCLR	SCSR,X $80 CHOUTE	; helps debug as it's now sync
-STRDONE: RTS
+	PULX
+	RTS
+
+; print a string
 STROUT:	LDAA	,Y
 	BEQ	STRDONE
 	BSR	CHOUT
 	INY
 	BRA	STROUT
+STRDONE: RTS
 
-	;	reset vector
-	ORG	$FFFE
-	FDB	START
+; INPUT ONE CHAR INTO A-REGISTER with echo
+GETCH:	PSHX
+	LDX	#CPUBAS
+GETCHL:	BRCLR	SCSR,X RDRF GETCHL	; wait for char available
+	LDAA	SCDR,X
+	CMPA	#$7F
+	BEQ	GETCH		; ignore rubout character
+	BRCLR	SCSR,X $80 CHOUT
+	STAA	SCDR,X		; echo the character
+	PULX
+	RTS
+
+
+; Report vector problem
+
+VECERR:	ldy	#ERROUT
+	jsr	STROUT
+FREEZE:	bra	FREEZE     ;Suspend via endless loop
+
+	; Processor hardware vectors
+; There are twenty, not including CPU Reset
+
+	org	$10000-(NUMVEC+1)*2	; below end of ROM
+
+	.fdb	VSCI	; SCI Event
+	.fdb	VSPI	; SPI Transfer Complete
+	.fdb	VPAII	; Pulse Accumulator Input Edge
+	.fdb	VPAOF	; Pulse Accumulator Overflow
+	.fdb	VTOF	; Timer Overflow
+
+	.fdb	VI4O5	; Timer IC4/OC5
+	.fdb	VTOC4	; Timer Output Compare 4
+	.fdb	VTOC3	; Timer Output Compare 3
+	.fdb	VTOC2	; Timer Output Compare 2
+	.fdb	VTOC1	; Timer Output Compare 1
+
+	.fdb	VTIC3	; Timer Input Capture 3
+	.fdb	VTIC2	; Timer Input Capture 2
+	.fdb	VTIC1	; Timer Input Capture 1
+	.fdb	VRTI	; Real Time Interrupt
+	.fdb	VIRQ	; IRQ pin
+
+	.fdb	VXIRQ	; XIRQ pin
+	.fdb	VSWI	; Software Interrupt
+	.fdb	VILLEG	; Illegal Op Code Trap
+	.fdb	VCOPF	; COP Failure
+	.fdb	VCMF	; COP Clock Monitor Fail
+
+	.fdb	START	; RESET
+
+; Data Section
+; located in main RAM
+
+	org	SYSVAR		; system variables block at top page of RAM
+					; stack just below
+
+CARDTYPE:	RMB	1
+BUF:		RMB	8
+
+	org	CPUBAS-(NUMVEC*3)	; below end of main RAM
+
+; CPU vector jump table
+; must be in RAM to be alterable
+
+VSCI:	.rmb	3
+VSPI:	.rmb	3
+VPAII:	.rmb	3
+VPAOF:	.rmb	3
+VTOF:	.rmb	3
+
+VI4O5:	.rmb	3
+VTOC4:	.rmb	3
+VTOC3:	.rmb	3
+VTOC2:	.rmb	3
+VTOC1:   .rmb	3
+
+VTIC3:	.rmb	3
+VTIC2:	.rmb	3
+VTIC1:   .rmb	3
+VRTI:    .rmb	3
+VIRQ:    .rmb	3
+
+VXIRQ:    .rmb	3
+VSWI:    .rmb	3
+VILLEG:   .rmb	3
+VCOPF:    .rmb	3
+VCMF:    .rmb	3
+
+HERE	.equ	*
+
+	.END
