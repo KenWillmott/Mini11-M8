@@ -13,3 +13,10 @@ https://github.com/EtchedPixels/Mini11
 - F100-F3FF  Bank 1 NVRAM
 - F400-F7FF  Expansion Bus Device Select
 - F800-FFFF  EPROM/EEPROM (read) / Memory Paging Register (write)
+## Software
+(current)
+- 0000-EC00 dual bank general purpose memory
+- EF80  stack
+- EFC4-EFFF CPU vector jump table
+- F800-FB5F Boot code
+- FFD6-FFFF CPU vectors
