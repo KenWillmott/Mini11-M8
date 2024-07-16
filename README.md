@@ -45,10 +45,11 @@ MCU ADC inputs PE0-PE3, VCC and GND
 - 0: monitor
 - 1: boot from SD card
 ## BAT1
+Place a jumper across two of the three pins to select:
 - int: connects internal battery to the NVRAM controller
 - ext: use to connect an external backup battery (3.0V)
 ## BAT2
-Connect an secondary, auxiliary backup battery. If this is powered, the on board battery may be changed without any data loss.
+Connect an secondary, auxiliary backup battery. If this is powered, the on board battery may be changed without any data loss. Place a jumper if no battery is connected.
 ## 512/128
 - 512: use 512kb IC such as AS6C4008
 - 128: use 128kb IC such as AS6C1008
