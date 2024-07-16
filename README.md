@@ -11,5 +11,5 @@ https://github.com/EtchedPixels/Mini11
 - F000-F03F  CPU control registers
 - F040-F0FF  Internal RAM
 - F100-F3FF  Bank 1 NVRAM
-- F400-F7FF  Expansion Bus Select
+- F400-F7FF  Expansion Bus Device Select
 - F800-FFFF  EPROM/EEPROM (read) / Memory Paging Register (write)
