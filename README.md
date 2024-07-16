@@ -12,4 +12,4 @@ https://github.com/EtchedPixels/Mini11
 - F040-F0FF  Internal RAM
 - F100-F3FF  Bank 1 NVRAM
 - F400-F7FF  Expansion Bus Select
-- F800-FFFF  EPROM/EEPROM
+- F800-FFFF  EPROM/EEPROM (read) / Memory Paging Register (write)
