@@ -29,3 +29,5 @@ The main memory is made non-volatile using a DS1210 NVRAM controller IC. An opti
 - FFD6-FFFF CPU vectors
 ## Operation
 Currently, the system boots from the 2k ROM space. It sets up some system variables and then attempts to boot from SD. If a disk is found, it will load the first sector of disk into RAM and then run it. If SD is not used, the 2k block below the highest block can be programmed with a stand alone monitor. The upper and lower half of upper 4k of EEPROM is configured with a jumper on the PCB, so that a choice of boot routines can be made.
+
+Memory banking is simple. The upper 4 bits of the memory latch select one of sixteen 32kb blocs from the 512kb main memory, that will appear in the upper 32k of CPU memory. Similarly, the lower 4 bits of the memory latch select an independent 32k bank from main memory, which appears in the lower 32k of CPU memory.
