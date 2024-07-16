@@ -385,15 +385,13 @@ STROUT:	LDAA	,Y
 	BRA	STROUT
 STRDONE: RTS
 
-; INPUT ONE CHAR INTO A-REGISTER with echo
+; INPUT ONE CHAR INTO A-REGISTER with no echo
 GETCH:	PSHX
 	LDX	#CPUBAS
 GETCHL:	BRCLR	SCSR,X RDRF GETCHL	; wait for char available
 	LDAA	SCDR,X
 	CMPA	#$7F
 	BEQ	GETCH		; ignore rubout character
-	BRCLR	SCSR,X $80 CHOUT
-	STAA	SCDR,X		; echo the character
 	PULX
 	RTS
 
