@@ -4,6 +4,13 @@ MC68HC11A1 MCU based SBC
 Documentation is a work in progress. This project is based on hardware and software developed here:
 https://github.com/EtchedPixels/Mini11
 
+# Overview
+This is a 10cm * 10cm PCB with an MC68HC11A1 processor. It uses only traditional through hole PCB construction and MSI glue logic in the 74HC line. It does not have any programmable logic device other than the usual EEPROM. There is one exception, the reset controller is an SMD device. This is because of a noticeable cost/availability problem with through hole type reset controllers. To interface with additional peripherals, the board follows M8 sytem outline and mounting hole dimensions, and is equipped with a full bus interface that will connect with the M8 series of peripheral expansion PCB's available on this hosting.
+
+The processor itself has a lot of built in features that make a self contained computer easier to make. The serial connection can connect to a host computer or some other device. The processor can support a TF memory card directly with software driving the built in SPI. That gives it a disk. To complement that there is 512kb of non volatile memory, battery backed up. Any 32k bank of this memory can be assigned to either the upper or lower 32k of the CPU memory map, by writing to the memory paging control latch. This essentially makes all the memory selectively available to the CPU.
+
+The main memory is made non-volatile using a DS1210 NVRAM controller IC. An option is provided for either 128kb or 512kb of memory. Either one is a single IC. There is provision for either an on board or external battery, and also an auxiliary battery for additional protection or to allow hot swapping batteries.
+
 # Memory Map
 ## Hardware
 - 0000-7FFF  Bank 0 NVRAM
