@@ -32,25 +32,25 @@ Currently, the system boots from the 2k ROM space. It sets up some system variab
 
 Memory banking is simple. The upper 4 bits of the memory latch select one of sixteen 32kb blocs from the 512kb main memory, that will appear in the upper 32k of CPU memory. Similarly, the lower 4 bits of the memory latch select an independent 32k bank from main memory, which appears in the lower 32k of CPU memory.
 # Connectors
-## SPI/SD
+## J2 SPI/SD
 Connects to the MCU SPI pins, mimics the common pinout of an SD/TF card adapter module (such as often used with Arduino). The module must have its own 3.3V/5V signal voltage translation on board. Many modules don't have that and can't tolerate 5V from the MCU
-## Serial
+## J1 Serial
 Typical TX/RX/VCC/GND connections usually to a USB to serial adapter module.
-## Parallel I/O
+## J3 Parallel I/O
 MCU Port A pins PA0-PA6 are presented at a connector (PA7 is used for an additional SD chip select)
-## Analog
+## J6 Analog
 MCU ADC inputs PE0-PE3, VCC and GND
 # Jumpers
-## Boot select
+## JP4 Boot select
 - 0: monitor
 - 1: boot from SD card
-## BAT1
+## J7 BAT1
 Place a jumper across two of the three pins to select:
 - int: connects internal battery to the NVRAM controller
 - ext: use to connect an external backup battery (3.0V)
-## BAT2
+## J8 BAT2
 Connect an secondary, auxiliary backup battery. If this is powered, the on board battery may be changed without any data loss. Place a jumper if no battery is connected.
-## 512/128
+## JP3 512/128
 - 512: use 512kb IC such as AS6C4008
 - 128: use 128kb IC such as AS6C1008
 ## RES SW
