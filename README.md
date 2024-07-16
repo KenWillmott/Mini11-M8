@@ -49,10 +49,10 @@ MCU ADC inputs PE0-PE3, VCC and GND
 - ext: use to connect an external backup battery (3.0V)
 ## BAT2
 Connect an secondary, auxiliary backup battery. If this is powered, the on board battery may be changed without any data loss.
-# 512/128
+## 512/128
 - 512: use 512kb IC such as AS6C4008
 - 128: use 128kb IC such as AS6C1008
-# RES SW
+## RES SW
 provision for an external reset switch. Note that the MCU reset circuit is not common drain, it is a CMOS driven voltage level. Thus any reset signal must not be applied to the MCU/bus RESET signal line, only to the internal/external reset switch circuit that controls the reset controller IC.
-# MODA, MODB
+## MODA, MODB
 These are MCU mode control pins. They are held high with pull up resistors so are left open in normal operation.
