@@ -27,3 +27,5 @@ The main memory is made non-volatile using a DS1210 NVRAM controller IC. An opti
 - EFC4-EFFF CPU vector jump table
 - F800-FB5F Boot code
 - FFD6-FFFF CPU vectors
+## Operation
+Currently, the system boots from the 2k ROM space. It sets up some system variables and then attempts to boot from SD. If a disk is found, it will load the first sector of disk into RAM and then run it. If SD is not used, the 2k block below the highest block can be programmed with a stand alone monitor. The upper and lower half of upper EEPROM is configured with a jumper on the PCB, so that a choice of boot routines can be made.
