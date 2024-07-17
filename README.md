@@ -47,7 +47,7 @@ MCU ADC inputs PE0-PE3, VCC and GND
 ## J7 BAT1
 Place a jumper across two of the three pins to select:
 - int: connects internal battery to the NVRAM controller
-- ext: use to connect an external backup battery (3.0V)
+- ext: use to connect an external backup battery (3.0V) If a jumper is placed instead, it will just disable the NVRAM.
 ## J8 BAT2
 Optionally connect an secondary, auxiliary backup battery. If this is powered, the on board battery may be changed without any data loss. Place a jumper if no battery is connected.
 ## JP3 512/128
