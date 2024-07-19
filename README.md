@@ -31,6 +31,8 @@ The main memory is made non-volatile using a DS1210 NVRAM controller IC. An opti
 ## Operation
 Currently, the system boots from the 2k ROM space. It sets up some system variables and then attempts to boot from SD. If a disk is found, it will load the first sector of disk into RAM and then run it. If SD is not used, the 2k block below the highest block can be programmed with a stand alone monitor. The upper and lower half of upper 4k of EEPROM is configured with a jumper on the PCB, so that a choice of boot routines can be made. The monitor is duplicated with the boot firmware, so is available for support in case the disk does not operate.
 
+The CPU vectors in high ROM are copied into a vector table in RAM so that they can be redirected. simple serial I/O routines are in ROM, and can be used by applications by referencing the table in ROM where they are combined.
+
 Memory banking is simple. The upper 4 bits of the memory latch select one of sixteen 32kb blocs from the 512kb main memory, that will appear in the upper 32k of CPU memory. Similarly, the lower 4 bits of the memory latch select an independent 32k bank from main memory, which appears in the lower 32k of CPU memory.
 # Connectors
 ## J2 SPI/SD
