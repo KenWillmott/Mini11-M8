@@ -1,6 +1,9 @@
 # Mini11-M8
 MC68HC11A1 MCU based SBC
 
+# IMPORTANT! This project is deprecated. It's superceded by this device:
+https://github.com/KenWillmott/Mini11-M8E/wiki
+
 This project is based on hardware and software developed here:
 https://github.com/EtchedPixels/Mini11
 
